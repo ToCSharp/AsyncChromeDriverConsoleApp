@@ -34,21 +34,9 @@ namespace AsyncChromeDriverConsoleApp
         //            session.Page.SubscribeToDomContentEventFiredEvent((e) =>
         //            {
         //                Console.WriteLine("Page loaded");
-                        // not works
+        // NOT WORKS
         //                var screenshot = session.Page.CaptureScreenshot(new Page.CaptureScreenshotCommand(), new System.Threading.CancellationToken(), 5000).GetAwaiter().GetResult();
-        //                if (!string.IsNullOrWhiteSpace(screenshot.Data))
-        //                {
-        //                    var dir = @"C:\temp";
-        //                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        //                    var i = 0;
-        //                    var path = "";
-        //                    do
-        //                    {
-        //                        i++;
-        //                        path = Path.Combine(dir, $"screenshot{i}.png");
-        //                    } while (File.Exists(path));
-        //                    File.WriteAllBytes(path, Convert.FromBase64String(screenshot.Data));
-        //                }
+        //                SaveScreenshot(screenshot.Data);
 
         //            });
         //            session.Page.Enable(new Page.EnableCommand()).GetAwaiter().GetResult();
@@ -87,20 +75,7 @@ namespace AsyncChromeDriverConsoleApp
                     session.Page.SubscribeToDomContentEventFiredEvent(async (e2) =>
                     {
                         var screenshot = await session.Page.CaptureScreenshot(new Page.CaptureScreenshotCommand());
-                        if (!string.IsNullOrWhiteSpace(screenshot.Data))
-                        {
-                            var dir = @"C:\temp";
-                            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-                            var i = 0;
-                            var path = "";
-                            do
-                            {
-                                i++;
-                                path = Path.Combine(dir, $"screenshot{i}.png");
-                            } while (File.Exists(path));
-                            File.WriteAllBytes(path, Convert.FromBase64String(screenshot.Data));
-                            Console.WriteLine($"saved to {path}");
-                        }
+                        SaveScreenshot(screenshot.Data);
                     });
                     var navigateResult = await session.Page.Navigate(new Page.NavigateCommand
                     {
@@ -125,6 +100,54 @@ namespace AsyncChromeDriverConsoleApp
                 var remoteSessions = await webClient.GetStringAsync("/json");
                 return JsonConvert.DeserializeObject<ICollection<ChromeSessionInfo>>(remoteSessions);
             }
+        }
+
+        // Works
+        //static void Main(string[] args)
+        //{
+        //    //Launch Chrome With
+
+        //    //"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9223
+
+        //    Console.WriteLine("Hello World!");
+
+        //    var sessions = GetSessions("http://localhost:9223/").GetAwaiter().GetResult();
+
+        //    using (var session = new ChromeSession(sessions.First(s => s.Type == "page").WebSocketDebuggerUrl))
+        //    {
+
+        //        var navigateResult = session.Page.Navigate(new Page.NavigateCommand
+        //        {
+        //            Url = "https://www.google.com/"
+        //        }).GetAwaiter().GetResult();
+        //        var screenshot = session.Page.CaptureScreenshot(new Page.CaptureScreenshotCommand()).GetAwaiter().GetResult();
+        //        SaveScreenshot(screenshot.Data);
+        //        Console.ReadLine();
+
+        //    }
+        //}
+
+        private static void SaveScreenshot(string base64String)
+        {
+            if (!string.IsNullOrWhiteSpace(base64String))
+            {
+                string path = GetFilePathToSaveScreenshot();
+                File.WriteAllBytes(path, Convert.FromBase64String(base64String));
+            }
+        }
+
+        private static string GetFilePathToSaveScreenshot()
+        {
+            var dir = @"C:\temp";
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            var i = 0;
+            var path = "";
+            do
+            {
+                i++;
+                path = Path.Combine(dir, $"screenshot{i}.png");
+            } while (File.Exists(path));
+            return path;
         }
 
     }
